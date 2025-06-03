@@ -132,13 +132,12 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Продати нерухомість</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <div class="container">
-        <h2>Продати нерухомість</h2>
         <form method="POST" enctype="multipart/form-data">
+        <h2>Продати нерухомість</h2>
             <label>Адреса:
                 <input type="text" name="address" required>
             </label>
