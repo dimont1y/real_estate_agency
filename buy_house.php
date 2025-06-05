@@ -3,15 +3,14 @@ include 'connect_to_db.php';
 include 'header.php';
 
 $type_id = 2;
+$conditions = ["type_id = ?"];
+$params = [$type_id];
 
-$conditions = ["type_id = $type_id"];
-$params = [];
-
-
-
+// Handle filters
 if (!empty($_GET['price'])) {
     if ($_GET['price'] === '100000+') {
-        $conditions[] = "price >= 100000";
+        $conditions[] = "price >= ?";
+        $params[] = 100000;
     } else {
         [$min, $max] = explode('-', $_GET['price']);
         $conditions[] = "price BETWEEN ? AND ?";
@@ -22,7 +21,8 @@ if (!empty($_GET['price'])) {
 
 if (!empty($_GET['rooms'])) {
     if ($_GET['rooms'] === '4+') {
-        $conditions[] = "rooms >= 4";
+        $conditions[] = "rooms >= ?";
+        $params[] = 4;
     } else {
         $conditions[] = "rooms = ?";
         $params[] = (int)$_GET['rooms'];
@@ -33,11 +33,7 @@ $sql = "SELECT * FROM properties WHERE " . implode(' AND ', $conditions);
 $stmt = $conn->prepare($sql);
 
 if (!empty($params)) {
-    $types = '';
-    foreach ($params as $param) {
-        $types .= is_int($param) ? 'i' : (is_float($param) ? 'd' : 's');
-    }
- 
+    $types = str_repeat('i', count($params)); // All parameters are integers
     $stmt->bind_param($types, ...$params);
 }
 
@@ -48,37 +44,170 @@ $result = $stmt->get_result();
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <title>Купити будинок</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Купити будинок</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Override conflicting container styles for this page */
+        .buy-house-container {
+            max-width: 1200px !important;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: block; /* Remove grid behavior for container */
+        }
+        .filter-form {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+        }
+        .filter-form label {
+            margin: 0 10px 0 0;
+            font-weight: bold;
+            align-self: center;
+        }
+        .filter-form select {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            min-width: 150px;
+        }
+        .filter-form button {
+            padding: 8px 15px;
+            background-color: #a30000;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            align-self: center;
+        }
+        .filter-form button:hover {
+            background-color: #630000;
+        }
+        .properties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .property-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Ensure cards stretch to same height */
+        }
+        .property-card .gallery {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            background: #f0f0f0;
+            min-height: 120px; /* Ensure consistent height even if no photos */
+            align-items: center;
+            justify-content: center;
+        }
+        .property-card .gallery img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+        .property-card .info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .property-card .info .btn {
+            margin-top: auto; /* Push button to bottom of card */
+        }
+        .no-properties {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            grid-column: 1 / -1;
+        }
+        @media (max-width: 768px) {
+            .filter-form {
+                flex-direction: column;
+                align-items: center;
+            }
+            .filter-form select, .filter-form button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
 </head>
 <body>
+<main>
+    <div class="buy-house-container">
+        <h2>Доступні будинки</h2>
 
-<h2 style="text-align:center;">Доступні будинки</h2>
+        <!-- Filter Form -->
+        <form class="filter-form" method="GET" action="">
+            <label for="price">Ціна:</label>
+            <select name="price" id="price">
+                <option value="">Виберіть діапазон</option>
+                <option value="0-50000" <?= isset($_GET['price']) && $_GET['price'] === '0-50000' ? 'selected' : '' ?>>0 - 50,000 $</option>
+                <option value="50000-100000" <?= isset($_GET['price']) && $_GET['price'] === '50000-100000' ? 'selected' : '' ?>>50,000 - 100,000 $</option>
+                <option value="100000+" <?= isset($_GET['price']) && $_GET['price'] === '100000+' ? 'selected' : '' ?>>100,000+ $</option>
+            </select>
 
-<?php while ($row = mysqli_fetch_assoc($result)): ?>
-  <?php
-    $property_id = $row['property_id'];
-    $photos_query = mysqli_prepare($conn, "SELECT file_path FROM property_photos WHERE property_id = ?");
-    mysqli_stmt_bind_param($photos_query, "i", $property_id);
-    mysqli_stmt_execute($photos_query);
-    $photos_result = mysqli_stmt_get_result($photos_query);
-  ?>
-  <div class="property">
-    <h3><?= htmlspecialchars($row['address']) ?></h3>
-    <div class="details">
-      Площа: <?= $row['area'] ?> м²<br>
-      Поверх: <?= $row['floor'] ?><br>
-      Кімнати: <?= $row['rooms'] ?>
+            <label for="rooms">Кімнати:</label>
+            <select name="rooms" id="rooms">
+                <option value="">Виберіть кількість</option>
+                <option value="1" <?= isset($_GET['rooms']) && $_GET['rooms'] === '1' ? 'selected' : '' ?>>1</option>
+                <option value="2" <?= isset($_GET['rooms']) && $_GET['rooms'] === '2' ? 'selected' : '' ?>>2</option>
+                <option value="3" <?= isset($_GET['rooms']) && $_GET['rooms'] === '3' ? 'selected' : '' ?>>3</option>
+                <option value="4+" <?= isset($_GET['rooms']) && $_GET['rooms'] === '4+' ? 'selected' : '' ?>>4+</option>
+            </select>
+
+            <button type="submit">Фільтрувати</button>
+        </form>
+
+        <!-- Property Listings -->
+        <div class="properties-grid">
+            <?php if ($result->num_rows > 0): ?>
+                <?php while ($row = $result->fetch_assoc()): ?>
+                    <?php
+                    $property_id = $row['property_id'];
+                    $photos_stmt = $conn->prepare("SELECT file_path FROM property_photos WHERE property_id = ?");
+                    $photos_stmt->bind_param("i", $property_id);
+                    $photos_stmt->execute();
+                    $photos_result = $photos_stmt->get_result();
+                    ?>
+                    <div class="property-card card">
+                        <div class="gallery">
+                            <?php if ($photos_result->num_rows > 0): ?>
+                                <?php while ($photo = $photos_result->fetch_assoc()): ?>
+                                    <img src="<?= htmlspecialchars($photo['file_path']) ?>" alt="Фото нерухомості">
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <p style="text-align: center; padding: 10px; margin: 0;">Фото відсутні</p>
+                            <?php endif; ?>
+                        </div>
+                        <div class="info">
+                            <h3><?= htmlspecialchars($row['address']) ?></h3>
+                            <p>Площа: <?= htmlspecialchars($row['area']) ?> м²</p>
+                            <p>Поверх: <?= htmlspecialchars($row['floor']) ?></p>
+                            <p>Кімнати: <?= htmlspecialchars($row['rooms']) ?></p>
+                            <p>Ціна: <?= number_format($row['price'], 0, '.', ' ') ?> $</p>
+                            <a href="property_details.php?id=<?= $row['property_id'] ?>" class="btn">Деталі</a>
+                        </div>
+                    </div>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <p class="no-properties">Немає доступних будинків за вибраними фільтрами.</p>
+            <?php endif; ?>
+        </div>
     </div>
-    <div class="gallery">
-      <?php while ($photo = mysqli_fetch_assoc($photos_result)): ?>
-        <img src="<?= htmlspecialchars($photo['file_path']) ?>" alt="Фото нерухомості">
-      <?php endwhile; ?>
-    </div>
-  </div>
-<?php endwhile; ?>
+</main>
 
+<?php include 'footer.php'; ?>
 </body>
 </html>
-<?php include 'footer.php'; ?>

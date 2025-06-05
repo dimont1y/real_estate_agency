@@ -1,0 +1,41 @@
+Array
+(
+    [property_id] => 22
+    [address] => Львів, вул. Довженка 5
+    [area] => 80
+    [floor] => 1
+    [rooms] => 1
+    [type_id] => 2
+    [owner_id] => 1
+    [price] => 130000.00
+    [building_type] => Моноліт
+    [build_year] => 2018
+    [heating] => Електричне
+    [infrastructure] => є
+    [renovation] => Євроремонт
+    [furnished] => Повністю мебльована
+    [appliances] => є
+    [bathroom] => є
+    [internet_tv] => Підключено
+    [security] => є
+    [ownership] => Приватна
+    [mortgage_available] => Так
+    [description] => Опис Опис
+    [elevators] => 0
+    [bathroom_count] => 0
+    [parking] => 
+    [balcony] => 
+    [floors] => 1
+    [total_area] => 80.00
+    [living_area] => 30.00
+    [land_area] => 140.00
+    [sewerage] => Центральна
+    [water_supply] => Свердловина
+    [garage] => Вбудований
+    [outbuildings] => Кибідка
+    [bathroom_location] => є
+    [balcony_terrace] => Балкон
+    [purpose] => Житлове
+    [fence] => 2м
+    [distance_to_city] => 3
+)

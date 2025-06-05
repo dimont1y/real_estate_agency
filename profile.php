@@ -10,8 +10,13 @@ include 'header.php';
 
 $user_id = $_SESSION['user_id'];
 
-// Обробка редагування профілю
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Generate CSRF token for security
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION['csrf_token'];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_profile') {
     $new_username = trim($_POST['username']);
     $new_email = trim($_POST['email']);
     $new_phone = trim($_POST['phone']);
@@ -41,58 +46,125 @@ $stmt->execute();
 $userResult = $stmt->get_result();
 $user = $userResult->fetch_assoc();
 
-$adsStmt = $conn->prepare("SELECT * FROM properties WHERE owner_id = ?");
+$adsStmt = $conn->prepare("SELECT property_id, address, area, rooms, price, type_id FROM properties WHERE owner_id = ?");
 $adsStmt->bind_param("i", $user_id);
 $adsStmt->execute();
 $adsResult = $adsStmt->get_result();
+
+$message = $_SESSION['message'] ?? '';
+unset($_SESSION['message']); // Clear the message after displaying
 ?>
 
 <!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мій профіль</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .property {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .property a, .delete-form button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .property a {
+            background-color: #007bff;
+            color: white;
+        }
+        .property a:hover {
+            background-color: #0056b3;
+        }
+        .delete-form {
+            display: inline;
+        }
+        .delete-form button {
+            background-color: #a30000;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .delete-form button:hover {
+            background-color: #c82333;
+        }
+        .message {
+            color: #a30000;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h2>Мій профіль</h2>
 
-<div class="container">
-    <h2>Мій профіль</h2>
+        <?php if ($message): ?>
+            <p class="message"><?= htmlspecialchars($message) ?></p>
+        <?php endif; ?>
 
-    <form method="POST">
-        <label>Ім’я:
-            <input type="text" name="username" value="<?= htmlspecialchars($user['username']) ?>" required>
-        </label>
-        <label>Email:
-            <input type="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" required>
-        </label>
-        <label>Номер телефону:
-            <input type="tel" name="phone" value="<?= htmlspecialchars($user['phone']) ?>" pattern="\+380\d{9}" required>
-        </label>
-        <label>Новий пароль:
-            <input type="password" name="password" placeholder="Залиште порожнім, щоб не змінювати">
-        </label>
-        <button type="submit">Оновити профіль</button>
-    </form>
+        <form method="POST">
+            <input type="hidden" name="action" value="update_profile">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
+            <label>Ім’я:
+                <input type="text" name="username" value="<?= htmlspecialchars($user['username']) ?>" required>
+            </label>
+            <label>Email:
+                <input type="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" required>
+            </label>
+            <label>Номер телефону:
+                <input type="tel" name="phone" value="<?= htmlspecialchars($user['phone']) ?>" pattern="\+380\d{9}" required>
+            </label>
+            <label>Новий пароль:
+                <input type="password" name="password" placeholder="Залиште порожнім, щоб не змінювати">
+            </label>
+            <button type="submit">Оновити профіль</button>
+            <a href="logout.php" class="btn" style="margin-top: 1rem; display: inline-block; background-color: #a30000; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">Вийти з акаунту</a>
+        </form>
 
-    <h3>Мої оголошення</h3>
-    <?php if ($adsResult->num_rows > 0): ?>
-        <?php while ($ad = $adsResult->fetch_assoc()): ?>
-            <div class="property">
-                <strong><?= htmlspecialchars($ad['address']) ?></strong><br>
-                Площа: <?= $ad['area'] ?> м²<br>
-                Кімнат: <?= $ad['rooms'] ?><br>
-                Ціна: <?= number_format($ad['price'], 0, '.', ' ') ?> $<br>
-                <a href="property_details.php?id=<?= $ad['property_id'] ?>">Переглянути</a> |
-                <a href="edit_property.php?id=<?= $ad['property_id'] ?>">Редагувати</a> |
-                <a href="delete_property.php?id=<?= $ad['property_id'] ?>" onclick="return confirm('Ви впевнені?')">Видалити</a>
-            </div>
-        <?php endwhile; ?>
-    <?php else: ?>
-        <p>Оголошень ще немає.</p>
-    <?php endif; ?>
-</div>
+        <h3>Мої оголошення</h3>
+        <?php if ($adsResult->num_rows > 0): ?>
+            <?php while ($ad = $adsResult->fetch_assoc()): ?>
+                <div class="property">
+                    <div>
+                        <strong><?= htmlspecialchars($ad['address']) ?></strong><br>
+                        Площа: <?= htmlspecialchars($ad['area']) ?> м²<br>
+                        Кімнат: <?= htmlspecialchars($ad['rooms']) ?><br>
+                        Ціна: <?= number_format($ad['price'], 0, '.', ' ') ?> $
+                    </div>
+                    <div>
+                        <a href="property_details.php?id=<?= $ad['property_id'] ?>">Переглянути</a>
+                        <a href="<?= $ad['type_id'] == 1 ? 'edit_flat.php?id=' . $ad['property_id'] : 'edit_house.php?id=' . $ad['property_id'] ?>">Редагувати</a>
+                        <form class="delete-form" action="delete_property.php" method="POST" onsubmit="return confirmDelete();">
+                            <input type="hidden" name="property_id" value="<?= $ad['property_id'] ?>">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
+                            <button type="submit">Видалити</button>
+                        </form>
+                    </div>
+                </div>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <p>Оголошень ще немає.</p>
+        <?php endif; ?>
+    </div>
 
+    <script>
+        function confirmDelete() {
+            return confirm('Ви впевнені, що хочете видалити це оголошення? Цю дію неможливо скасувати.');
+        }
+    </script>
+
+    <?php include 'footer.php'; ?>
 </body>
 </html>
-<?php include 'footer.php'; ?>

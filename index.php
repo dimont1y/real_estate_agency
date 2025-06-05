@@ -115,7 +115,7 @@ $isLoggedIn = isset($_SESSION['user_id']);
 
     .overlay {
       background-color: rgba(0, 0, 0, 0.4);
-      height: 100%;
+      height: 84.5%;
       padding: 60px 20px;
       text-align: center;
     }
@@ -170,17 +170,15 @@ $isLoggedIn = isset($_SESSION['user_id']);
       gap: 15px;
     }
 
-    .search-form select,
-    .search-form input {
+    .search-form select {
       padding: 10px 14px;
       font-size: 1rem;
       border-radius: 10px;
       border: none;
       min-width: 180px;
-    }
-
-    .search-form input {
-      width: 180px;
+      box-sizing: border-box;
+      background-color: white;
+      color: #333;
     }
 
     .search-form button {
@@ -198,58 +196,64 @@ $isLoggedIn = isset($_SESSION['user_id']);
     .search-form button:hover {
       background-color: #a30000;
     }
+
+    #house-floors {
+      display: none;
+    }
   </style>
 </head>
 
-
-
 <body>
-
   <?php include 'header.php'; ?>
+  <main style="flex: 1;">
+    <section class="hero">
+      <div class="overlay">
+        <h1>Купити нерухомість у Львові</h1>
 
-  <section class="hero">
-    <div class="overlay">
-      <h1>Купити нерухомість у Львові</h1>
-
-      <div class="tabs">
-        <button class="tab active">Купити</button>
-        <a href="sell.php" class="tab" style="text-align:center; text-decoration:none;">Продати</a>
-        <button class="tab">Новобудови</button>
-      </div>
-
-      <form class="search-form" method="GET" action="search_redirect.php">
-        <div class="row">
-          <select name="type">
-            <option value="flat">Квартири</option>
-            <option value="house">Будинки</option>
-          </select>
-
-          <select name="price">
-            <option value="0-20000">до 20 000 $</option>
-            <option value="20000-50000">20 000 – 50 000 $</option>
-            <option value="50000-100000">50 000 – 100 000 $</option>
-            <option value="100000+">100 000 $+</option>
-          </select>
-
-          <select name="rooms">
-            <option value="1">1 кімната</option>
-            <option value="2">2 кімнати</option>
-            <option value="3">3 кімнати</option>
-            <option value="4+">4 і більше</option>
-          </select>
-
-          <div class="row" id="house-floors" style="display: none;">
-            <input type="number" name="floors" placeholder="Кількість поверхів" min="1" max="5">
-          </div>
-
-          <button type="submit">Показати</button>
+        <div class="tabs">
+          <button class="tab active">Купити</button>
+          <button class="tab" onclick="window.location.href='sell.php'">Продати</button>
         </div>
-      </form>
-    </div>
-  </section>
 
+        <form class="search-form" method="GET" action="search_redirect.php">
+          <div class="row">
+            <select name="type">
+              <option value="flat">Квартири</option>
+              <option value="house">Будинки</option>
+            </select>
 
+            <select name="price">
+              <option value="0-20000">до 20 000 $</option>
+              <option value="20000-50000">20 000 – 50 000 $</option>
+              <option value="50000-100000">50 000 – 100 000 $</option>
+              <option value="100000+">100 000 $+</option>
+            </select>
 
+            <select name="rooms">
+              <option value="1">1 кімната</option>
+              <option value="2">2 кімнати</option>
+              <option value="3">3 кімнати</option>
+              <option value="4+">4 і більше</option>
+            </select>
+
+            <div class="row" id="house-floors">
+              <select name="floors">
+                <option value="">Кількість поверхів</option>
+                <option value="1">1 поверх</option>
+                <option value="2">2 поверхи</option>
+                <option value="3">3 поверхи</option>
+                <option value="4">4 поверхи</option>
+                <option value="5">5 поверхів</option>
+              </select>
+            </div>
+
+            <button type="submit">Показати</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+  <?php include 'footer.php'; ?>
 </body>
 
 </html>
@@ -269,5 +273,3 @@ $isLoggedIn = isset($_SESSION['user_id']);
   typeSelect.addEventListener('change', toggleFloorsField);
   document.addEventListener('DOMContentLoaded', toggleFloorsField);
 </script>
-
-<?php include 'footer.php'; ?>
