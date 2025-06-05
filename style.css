@@ -338,3 +338,59 @@ main {
 .property a[href*="delete_property"]:hover {
   background-color: #7a0000;
 }
+
+
+body {
+  background-color: #edf0f4;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.form-wrapper {
+  max-width: 450px;
+  margin: 30px auto;
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+form label {
+  display: block;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+form input,
+form select,
+form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+form textarea {
+  resize: vertical;
+}
+
+form button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background-color: #8b0000;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+form button:hover {
+  background-color: #a80000;
+}

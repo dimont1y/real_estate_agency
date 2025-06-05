@@ -200,6 +200,20 @@ $isLoggedIn = isset($_SESSION['user_id']);
     #house-floors {
       display: none;
     }
+
+    .dropdown .tab {
+      background-color: white;
+      color: #005baa;
+      border: 2px solid #005baa;
+    }
+
+    .dropdown-content a {
+      color: #005baa;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #f5f5f5;
+    }
   </style>
 </head>
 
@@ -212,7 +226,13 @@ $isLoggedIn = isset($_SESSION['user_id']);
 
         <div class="tabs">
           <button class="tab active">Купити</button>
-          <button class="tab" onclick="window.location.href='sell.php'">Продати</button>
+          <div class="dropdown">
+            <button class="tab">Продати ▼</button>
+            <div class="dropdown-content" style="min-width: 140px;">
+              <a href="sell_flat.php">Квартиру</a>
+              <a href="sell_house.php">Будинок</a>
+            </div>
+          </div>
         </div>
 
         <form class="search-form" method="GET" action="search_redirect.php">

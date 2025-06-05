@@ -19,7 +19,13 @@ $isLoggedIn = isset($_SESSION['user_id']);
           <a href="buy_flat.php">Квартира</a>
         </div>
       </div>
-      <a href="sell.php" class="nav-btn">Продати</a>
+      <div class="dropdown">
+        <a href="#" class="nav-btn">Продати ▾</a>
+        <div class="dropdown-content">
+          <a href="sell_house.php">Будинок</a>
+          <a href="sell_flat.php">Квартира</a>
+        </div>
+      </div>
 
       <?php if ($isLoggedIn): ?>
         <a href="profile.php" class="nav-btn filled">Профіль</a>

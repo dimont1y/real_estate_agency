@@ -119,7 +119,13 @@
 </label>
 
 <label>Безпека:
-    <input type="text" name="security" value="<?= htmlspecialchars($_POST['security'] ?? '') ?>">
+    <select name="security" required>
+        <option value="">Виберіть тип</option>
+        <option value="Домофон" <?= ($_POST['security'] ?? '') == 'Домофон' ? 'selected' : '' ?>>Домофон</option>
+        <option value="Відеоспостереження" <?= ($_POST['security'] ?? '') == 'Відеоспостереження' ? 'selected' : '' ?>>Відеоспостереження</option>
+        <option value="Охорона" <?= ($_POST['security'] ?? '') == 'Охорона' ? 'selected' : '' ?>>Охорона</option>
+        <option value="Немає" <?= ($_POST['security'] ?? '') == 'Немає' ? 'selected' : '' ?>>Немає</option>
+    </select>
 </label>
 
 <label>Тип власності:

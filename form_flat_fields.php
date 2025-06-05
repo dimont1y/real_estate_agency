@@ -52,7 +52,12 @@
 </label>
 
 <label>Побутова техніка:
-    <input type="text" name="appliances">
+    <select name="appliances" required>
+        <option value="">Виберіть наявність</option>
+        <option value="Повний комплект" <?= ($_POST['appliances'] ?? '') == 'Повний комплект' ? 'selected' : '' ?>>Повний комплект</option>
+        <option value="Частковий комплект" <?= ($_POST['appliances'] ?? '') == 'Частковий комплект' ? 'selected' : '' ?>>Частковий комплект</option>
+        <option value="Немає" <?= ($_POST['appliances'] ?? '') == 'Немає' ? 'selected' : '' ?>>Немає</option>
+    </select>
 </label>
 
 <label>Санвузол:
@@ -74,15 +79,30 @@
 </label>
 
 <label>Безпека:
-    <input type="text" name="security">
+    <select name="security" required>
+        <option value="">Виберіть тип</option>
+        <option value="Домофон" <?= ($_POST['security'] ?? '') == 'Домофон' ? 'selected' : '' ?>>Домофон</option>
+        <option value="Відеоспостереження" <?= ($_POST['security'] ?? '') == 'Відеоспостереження' ? 'selected' : '' ?>>Відеоспостереження</option>
+        <option value="Охорона" <?= ($_POST['security'] ?? '') == 'Охорона' ? 'selected' : '' ?>>Охорона</option>
+        <option value="Немає" <?= ($_POST['security'] ?? '') == 'Немає' ? 'selected' : '' ?>>Немає</option>
+    </select>
 </label>
 
 <label>Паркінг:
-    <input type="text" name="parking">
+    <select name="parking" required>
+        <option value="Підземний" <?= ($_POST['parking'] ?? '') == 'Підземний' ? 'selected' : '' ?>>Підземний</option>
+        <option value="Наземний" <?= ($_POST['parking'] ?? '') == 'Наземний' ? 'selected' : '' ?>>Наземний</option>
+        <option value="Гараж" <?= ($_POST['parking'] ?? '') == 'Гараж' ? 'selected' : '' ?>>Гараж</option>
+        <option value="Немає" <?= ($_POST['parking'] ?? '') == 'Немає' ? 'selected' : '' ?>>Немає</option>
+    </select>
 </label>
 
 <label>Тип власності:
-    <input type="text" name="ownership">
+    <select name="ownership" required>
+        <option value="Приватна" <?= ($_POST['ownership'] ?? '') == 'Приватна' ? 'selected' : '' ?>>Приватна</option>
+        <option value="Кооперативна" <?= ($_POST['ownership'] ?? '') == 'Кооперативна' ? 'selected' : '' ?>>Кооперативна</option>
+        <option value="Державна" <?= ($_POST['ownership'] ?? '') == 'Державна' ? 'selected' : '' ?>>Державна</option>
+    </select>
 </label>
 
 <label>Підходить під іпотеку:
@@ -93,9 +113,11 @@
 </label>
 
 <label>Балкон/лоджія:
-    <input type="text" name="balcony">
+    <select name="balcony" required>
+        <option value="Балкон" <?= ($_POST['balcony'] ?? '') == 'Балкон' ? 'selected' : '' ?>>Балкон</option>
+        <option value="Лоджія" <?= ($_POST['balcony'] ?? '') == 'Лоджія' ? 'selected' : '' ?>>Лоджія</option>
+        <option value="Балкон і лоджія" <?= ($_POST['balcony'] ?? '') == 'Балкон і лоджія' ? 'selected' : '' ?>>Балкон і лоджія</option>
+        <option value="Немає" <?= ($_POST['balcony'] ?? '') == 'Немає' ? 'selected' : '' ?>>Немає</option>
+    </select>
 </label>
 
-<label>Опис:
-    <textarea name="description" rows="4" placeholder="Додайте опис квартири..."></textarea>
-</label>
