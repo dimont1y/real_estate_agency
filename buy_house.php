@@ -6,7 +6,6 @@ $type_id = 2;
 $conditions = ["type_id = ?"];
 $params = [$type_id];
 
-// Handle filters
 if (!empty($_GET['price'])) {
     if ($_GET['price'] === '100000+') {
         $conditions[] = "price >= ?";
@@ -29,11 +28,11 @@ if (!empty($_GET['rooms'])) {
     }
 }
 
-$sql = "SELECT * FROM properties WHERE " . implode(' AND ', $conditions);
+$sql = "SELECT * FROM properties WHERE " . implode(' AND ', $conditions) . " ORDER BY is_top DESC, property_id DESC";
 $stmt = $conn->prepare($sql);
 
 if (!empty($params)) {
-    $types = str_repeat('i', count($params)); // All parameters are integers
+    $types = str_repeat('i', count($params)); 
     $stmt->bind_param($types, ...$params);
 }
 
@@ -49,12 +48,12 @@ $result = $stmt->get_result();
     <title>Купити будинок</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Override conflicting container styles for this page */
+        
         .buy-house-container {
             max-width: 1200px !important;
             margin: 2rem auto;
             padding: 0 1rem;
-            display: block; /* Remove grid behavior for container */
+            display: block; 
         }
         .filter-form {
             background: #f8f9fa;
@@ -98,7 +97,7 @@ $result = $stmt->get_result();
         .property-card {
             display: flex;
             flex-direction: column;
-            height: 100%; /* Ensure cards stretch to same height */
+            height: 100%; 
         }
         .property-card .gallery {
             display: flex;
@@ -106,7 +105,7 @@ $result = $stmt->get_result();
             overflow-x: auto;
             padding: 10px 0;
             background: #f0f0f0;
-            min-height: 120px; /* Ensure consistent height even if no photos */
+            min-height: 120px; 
             align-items: center;
             justify-content: center;
         }
@@ -123,7 +122,7 @@ $result = $stmt->get_result();
             flex-direction: column;
         }
         .property-card .info .btn {
-            margin-top: auto; /* Push button to bottom of card */
+            margin-top: auto; 
         }
         .no-properties {
             text-align: center;
@@ -141,6 +140,11 @@ $result = $stmt->get_result();
                 max-width: 300px;
             }
         }
+        .property-card.highlighted {
+            background: #fffde7 !important;
+            border: 2px solid #ffc107;
+            box-shadow: 0 0 10px #ffe082;
+        }
     </style>
 </head>
 <body>
@@ -148,7 +152,6 @@ $result = $stmt->get_result();
     <div class="buy-house-container">
         <h2>Доступні будинки</h2>
 
-        <!-- Filter Form -->
         <form class="filter-form" method="GET" action="">
             <label for="price">Ціна:</label>
             <select name="price" id="price">
@@ -170,7 +173,6 @@ $result = $stmt->get_result();
             <button type="submit">Фільтрувати</button>
         </form>
 
-        <!-- Property Listings -->
         <div class="properties-grid">
             <?php if ($result->num_rows > 0): ?>
                 <?php while ($row = $result->fetch_assoc()): ?>
@@ -181,7 +183,7 @@ $result = $stmt->get_result();
                     $photos_stmt->execute();
                     $photos_result = $photos_stmt->get_result();
                     ?>
-                    <div class="property-card card">
+                    <div class="property-card card<?= ($row['is_highlighted'] ?? 0) ? ' highlighted' : '' ?>">
                         <div class="gallery">
                             <?php if ($photos_result->num_rows > 0): ?>
                                 <?php while ($photo = $photos_result->fetch_assoc()): ?>

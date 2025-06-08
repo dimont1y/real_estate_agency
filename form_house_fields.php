@@ -2,10 +2,6 @@
 // form_house_fields.php
 ?>
 
-<label>Кількість поверхів:
-    <input type="number" name="floors" min="1" value="<?= htmlspecialchars($_POST['floors'] ?? '') ?>" required>
-</label>
-
 <label>Тип будинку:
     <select name="building_type" required>
         <option value="Цегляний" <?= ($_POST['building_type'] ?? '') == 'Цегляний' ? 'selected' : '' ?>>Цегляний</option>
@@ -91,11 +87,18 @@
 </label>
 
 <label>Побутова техніка:
-    <input type="text" name="appliances" value="<?= htmlspecialchars($_POST['appliances'] ?? '') ?>">
+    <select name="appliances" required>
+        <option value="Повний комплект" <?= ($_POST['appliances'] ?? '') == 'Повний комплект' ? 'selected' : '' ?>>Повний комплект</option>
+        <option value="Частковий комплект" <?= ($_POST['appliances'] ?? '') == 'Частковий комплект' ? 'selected' : '' ?>>Частковий комплект</option>
+        <option value="Немає" <?= ($_POST['appliances'] ?? '') == 'Немає' ? 'selected' : '' ?>>Немає</option>
+    </select>
 </label>
 
 <label>Санвузол:
-    <input type="text" name="bathroom" value="<?= htmlspecialchars($_POST['bathroom'] ?? '') ?>">
+    <select name="bathroom" required>
+        <option value="Суміщений" <?= ($_POST['bathroom'] ?? '') == 'Суміщений' ? 'selected' : '' ?>>Суміщений</option>
+        <option value="Роздільний" <?= ($_POST['bathroom'] ?? '') == 'Роздільний' ? 'selected' : '' ?>>Роздільний</option>
+    </select>
 </label>
 
 <label>Розташування санвузла:

@@ -10,7 +10,6 @@ if ($property_id <= 0) {
     exit();
 }
 
-// Fetch property data
 $stmt = $conn->prepare("SELECT * FROM properties WHERE property_id = ?");
 $stmt->bind_param("i", $property_id);
 $stmt->execute();
@@ -22,19 +21,16 @@ if (!$property) {
     exit();
 }
 
-// Define default values for all possible fields
 $property_defaults = [
-    // From properties table
     'property_id' => 0,
     'address' => '',
     'area' => 0,
-    'floor' => 0, // Used for both flats (floor) and houses (floors)
+    'floor' => 0, 
     'rooms' => 0,
     'type_id' => 0,
     'owner_id' => 0,
     'price' => 0,
 
-    // Common fields in flat_details and house_details
     'building_type' => '',
     'build_year' => 0,
     'heating' => '',
@@ -43,20 +39,18 @@ $property_defaults = [
     'furnished' => '',
     'appliances' => '',
     'bathroom' => '',
-    'internet_tv' => '', // Treating as string for now (e.g., "Під<v>Підключено</v> or "Не підключено")
+    'internet_tv' => '', 
     'security' => '',
     'ownership' => '',
-    'mortgage_available' => '', // Treating as string (e.g., "Так" or "Ні")
+    'mortgage_available' => '', 
     'description' => '',
 
-    // Flat-specific fields (type_id = 1)
     'elevators' => 0,
     'bathroom_count' => 0,
     'parking' => '',
     'balcony' => '',
 
-    // House-specific fields (type_id = 2)
-    'floors' => 0, // Already included as 'floor' in properties, but we’ll map it
+    'floors' => 0, 
     'total_area' => 0,
     'living_area' => 0,
     'land_area' => 0,
@@ -71,10 +65,7 @@ $property_defaults = [
     'distance_to_city' => 0,
 ];
 
-// Merge default values with the fetched property data
 $property = array_merge($property_defaults, $property);
-
-// Determine property type and fetch additional details
 $type_id = $property['type_id'];
 $details_table = ($type_id == 1) ? 'flat_details' : 'house_details';
 
@@ -83,31 +74,25 @@ $details_stmt ? $details_stmt->bind_param("i", $property_id) : null;
 $details_stmt->execute();
 $details = $details_stmt->get_result()->fetch_assoc();
 
-// Merge details with property data, ensuring all fields are covered
 if ($details) {
     $property = array_merge($property, $details);
 }
 
-// For houses, map 'floors' from house_details to the 'floor' field for consistency
 if ($type_id == 2 && isset($details['floors'])) {
     $property['floor'] = $details['floors'];
 }
 
-// Debug: Log the property data to inspect what's being retrieved
 file_put_contents('debug.log', print_r($property, true));
 
-// Utility functions
 function safe_output($value, $default = 'Не вказано') {
     return !empty($value) && $value !== null ? htmlspecialchars($value) : $default;
 }
 
 function bool_output($value, $true_text = 'Так', $false_text = 'Ні', $default = 'Не вказано') {
     if ($value === null || $value === '') return $default;
-    // Handle string values from the form (e.g., "Так"/"Ні" or "Підключено"/"Не підключено")
     if (is_string($value)) {
         return $value === 'Так' || $value === 'Підключено' ? $true_text : $false_text;
     }
-    // Handle numeric/boolean values (e.g., 1/0)
     return $value ? $true_text : $false_text;
 }
 ?>
@@ -263,6 +248,9 @@ function bool_output($value, $true_text = 'Так', $false_text = 'Ні', $defau
             <p><strong>Поверх:</strong> <?= safe_output($property['floor']) ?></p>
             <p><strong>Кімнати:</strong> <?= safe_output($property['rooms']) ?></p>
             <p><strong>Ціна:</strong> <?= number_format($property['price'], 0, '.', ' ') ?> $</p>
+            <?php if (!empty($property['created_at'])): ?>
+                <p><strong>Додано на сайт:</strong> <?= date('d.m.Y H:i', strtotime($property['created_at'])) ?></p>
+            <?php endif; ?>
         </div>
 
         <div class="section">

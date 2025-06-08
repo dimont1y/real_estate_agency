@@ -11,15 +11,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!preg_match("/^\\+380\\d{9}$/", $phone)) {
         $error = "Невірний формат номеру телефону. Використовуйте формат +380XXXXXXXXX";
     } else {
-        $stmt = $conn->prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $username, $email, $password);
+        $stmt = $conn->prepare("INSERT INTO users (username, email, password_hash, phone) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $username, $email, $password, $phone);
 
         if ($stmt->execute()) {
             $user_id = $stmt->insert_id;
-            $stmt2 = $conn->prepare("INSERT INTO userprofiles (user_id, phone) VALUES (?, ?)");
-            $stmt2->bind_param("is", $user_id, $phone);
-            $stmt2->execute();
-
             $_SESSION['user_id'] = $user_id;
             header("Location: /real_estate/index.php");
             exit();

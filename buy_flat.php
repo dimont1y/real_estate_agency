@@ -6,7 +6,6 @@ $type_id = 1;
 $conditions = ["type_id = ?"];
 $params = [$type_id];
 
-// Handle filters
 if (!empty($_GET['price'])) {
     if ($_GET['price'] === '100000+') {
         $conditions[] = "price >= ?";
@@ -57,7 +56,7 @@ $sql = "SELECT * FROM properties WHERE " . implode(' AND ', $conditions);
 $stmt = $conn->prepare($sql);
 
 if (!empty($params)) {
-    $types = str_repeat('i', count($params)); // All parameters are integers
+    $types = str_repeat('i', count($params));
     $stmt->bind_param($types, ...$params);
 }
 
@@ -188,7 +187,6 @@ $result = $stmt->get_result();
     <div class="container">
         <h2>Квартири на продаж</h2>
 
-        <!-- Filter Section -->
         <div class="filter-section">
             <form class="filter-form" method="GET" action="buy_flat.php">
                 <label for="price">Ціна ($):</label>
@@ -229,7 +227,6 @@ $result = $stmt->get_result();
             </form>
         </div>
 
-        <!-- Property Listings -->
         <div class="properties-grid">
             <?php if ($result->num_rows > 0): ?>
                 <?php while ($row = $result->fetch_assoc()): ?>

@@ -10,7 +10,6 @@ include 'header.php';
 
 $user_id = $_SESSION['user_id'];
 
-// Generate CSRF token for security
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -22,13 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $new_phone = trim($_POST['phone']);
     $new_password = !empty($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : null;
 
-    $stmt = $conn->prepare("UPDATE users SET username = ?, email = ? WHERE user_id = ?");
-    $stmt->bind_param("ssi", $new_username, $new_email, $user_id);
+    $stmt = $conn->prepare("UPDATE users SET username = ?, email = ?, phone = ? WHERE user_id = ?");
+    $stmt->bind_param("sssi", $new_username, $new_email, $new_phone, $user_id);
     $stmt->execute();
-
-    $stmt2 = $conn->prepare("UPDATE userprofiles SET phone = ? WHERE user_id = ?");
-    $stmt2->bind_param("si", $new_phone, $user_id);
-    $stmt2->execute();
 
     if ($new_password) {
         $stmt3 = $conn->prepare("UPDATE users SET password_hash = ? WHERE user_id = ?");
@@ -40,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit();
 }
 
-$stmt = $conn->prepare("SELECT u.username, u.email, up.phone FROM users u LEFT JOIN userprofiles up ON u.user_id = up.user_id WHERE u.user_id = ?");
+$stmt = $conn->prepare("SELECT username, email, phone FROM users WHERE user_id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $userResult = $stmt->get_result();
@@ -52,7 +47,7 @@ $adsStmt->execute();
 $adsResult = $adsStmt->get_result();
 
 $message = $_SESSION['message'] ?? '';
-unset($_SESSION['message']); // Clear the message after displaying
+unset($_SESSION['message']); 
 ?>
 
 <!DOCTYPE html>
@@ -117,7 +112,7 @@ unset($_SESSION['message']); // Clear the message after displaying
         <form method="POST">
             <input type="hidden" name="action" value="update_profile">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
-            <label>Ім’я:
+            <label>Ім'я:
                 <input type="text" name="username" value="<?= htmlspecialchars($user['username']) ?>" required>
             </label>
             <label>Email:
@@ -151,6 +146,7 @@ unset($_SESSION['message']); // Clear the message after displaying
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
                             <button type="submit">Видалити</button>
                         </form>
+                        <a href="chat.php?property_id=<?= $ad['property_id'] ?>" class="btn" style="background:#ffc107; color:#333; margin-left:10px;">Підняти в топ</a>
                     </div>
                 </div>
             <?php endwhile; ?>

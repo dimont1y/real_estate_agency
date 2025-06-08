@@ -6,6 +6,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
+    // Check for admin credentials first
+    if ($email === "admin@admin" && $password === "admin") {
+        // Знайти user_id адміна в БД
+        $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->bind_result($admin_id);
+        if ($stmt->fetch()) {
+            $_SESSION['user_id'] = $admin_id;
+            $_SESSION['is_admin'] = true;
+            header("Location: /real_estate/admin_dashboard.php");
+            exit();
+        } else {
+            $error = "Адмін не знайдений у базі.";
+        }
+    }
+
     $stmt = $conn->prepare("SELECT user_id, password_hash FROM users WHERE email = ? LIMIT 1");
     $stmt->bind_param("s", $email);
     $stmt->execute();
@@ -13,6 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if ($stmt->fetch() && password_verify($password, $hash)) {
         $_SESSION['user_id'] = $user_id;
+        $_SESSION['is_admin'] = false;
         header("Location: /real_estate/index.php");
         exit();
     } else {

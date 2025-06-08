@@ -16,7 +16,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rooms = intval($_POST['rooms'] ?? 0);
     $floors = intval($_POST['floors'] ?? 0);
     $description = trim($_POST['description'] ?? '');
-    $owner_id = $_SESSION['user_id'];
+    
+    // Handle admin user
+    if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true) {
+        // Get or create admin user
+        $admin_email = "admin@admin";
+        $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
+        $stmt->bind_param("s", $admin_email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows === 0) {
+            // Create admin user if doesn't exist
+            $username = "Admin";
+            $password_hash = password_hash("admin", PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $username, $admin_email, $password_hash);
+            $stmt->execute();
+            $owner_id = $stmt->insert_id;
+        } else {
+            $owner_id = $result->fetch_assoc()['user_id'];
+        }
+    } else {
+        $owner_id = $_SESSION['user_id'];
+    }
 
     if ($address === '') $errors[] = "Адреса є обов'язковою.";
     if ($area <= 0) $errors[] = "Площа повинна бути більше 0.";
@@ -28,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Потрібно завантажити від 5 до 20 фотографій.";
     }
 
-    // Додаткові поля для будинку
     $total_area = floatval($_POST['total_area'] ?? 0);
     $living_area = floatval($_POST['living_area'] ?? 0);
     $land_area = floatval($_POST['land_area'] ?? 0);
@@ -54,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($purpose === '') $errors[] = "Вкажіть призначення.";
 
     if (empty($errors)) {
-        $stmt = $conn->prepare("INSERT INTO properties (address, area, floor, rooms, type_id, owner_id, price) VALUES (?, ?, ?, ?, 2, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO properties (address, area, floor, rooms, type_id, owner_id, price, status) VALUES (?, ?, ?, ?, 2, ?, ?, 'pending')");
         $stmt->bind_param("sddiid", $address, $area, $floors, $rooms, $owner_id, $price);
         if ($stmt->execute()) {
             $property_id = $stmt->insert_id;
@@ -127,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            $message = "Оголошення про будинок успішно додано.";
+            $message = "Ваше оголошення надіслано на модерацію. Після схвалення адміністратором воно з'явиться на сайті.";
         } else {
             $errors[] = "Помилка бази даних: " . $stmt->error;
         }

@@ -8,9 +8,14 @@ include 'connect_to_db.php';
 include 'header.php';
 $property_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-// Check if this flat belongs to the user
-$stmt = $conn->prepare("SELECT * FROM properties WHERE property_id = ? AND type_id = 1 AND owner_id = ?");
-$stmt->bind_param("ii", $property_id, $_SESSION['user_id']);
+// Check if user is admin
+if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true) {
+    $stmt = $conn->prepare("SELECT * FROM properties WHERE property_id = ? AND type_id = 1");
+    $stmt->bind_param("i", $property_id);
+} else {
+    $stmt = $conn->prepare("SELECT * FROM properties WHERE property_id = ? AND type_id = 1 AND owner_id = ?");
+    $stmt->bind_param("ii", $property_id, $_SESSION['user_id']);
+}
 $stmt->execute();
 $property = $stmt->get_result()->fetch_assoc();
 
@@ -19,13 +24,11 @@ if (!$property) {
     exit();
 }
 
-// Get details from flat_details
 $details_stmt = $conn->prepare("SELECT * FROM flat_details WHERE property_id = ?");
 $details_stmt->bind_param("i", $property_id);
 $details_stmt->execute();
 $details = $details_stmt->get_result()->fetch_assoc();
 
-// Get existing photos
 $photos_stmt = $conn->prepare("SELECT photo_id, file_path FROM property_photos WHERE property_id = ?");
 $photos_stmt->bind_param("i", $property_id);
 $photos_stmt->execute();
@@ -38,7 +41,6 @@ while ($photo = $photos_result->fetch_assoc()) {
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Handle form data
     $address = trim($_POST['address']);
     $area = (float)$_POST['area'];
     $rooms = (int)$_POST['rooms'];
@@ -62,7 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $balcony = $_POST['balcony'];
     $description = trim($_POST['description']);
 
-    // Validation
     if ($address === '') {
         $errors[] = "Адреса є обов'язковою.";
     }
@@ -97,7 +98,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Кількість санвузлів повинна бути не менше 1.";
     }
 
-    // Handle photo deletion
     if (empty($errors) && isset($_POST['delete_photos']) && is_array($_POST['delete_photos'])) {
         foreach ($_POST['delete_photos'] as $photo_id) {
             $photo_id = (int)$photo_id;
@@ -107,11 +107,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $photo = $delete_stmt->get_result()->fetch_assoc();
 
             if ($photo) {
-                // Delete the file from the server
                 if (file_exists($photo['file_path'])) {
                     unlink($photo['file_path']);
                 }
-                // Delete the record from the database
                 $delete_photo = $conn->prepare("DELETE FROM property_photos WHERE photo_id = ?");
                 $delete_photo->bind_param("i", $photo_id);
                 $delete_photo->execute();
@@ -119,7 +117,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Handle new photo uploads
     if (empty($errors) && !empty($_FILES['photos']['name'][0])) {
         $upload_dir = "pics/flat/$property_id/";
         if (!is_dir($upload_dir)) {
@@ -129,7 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $remaining_photos = $photos_stmt->execute();
         $remaining_photos = $photos_stmt->get_result()->num_rows;
 
-        // Check total photos after deletion and new uploads
         $new_photos_count = count(array_filter($_FILES['photos']['name']));
         if (($remaining_photos - count($_POST['delete_photos'] ?? []) + $new_photos_count) < 5) {
             $errors[] = "Кількість фотографій після змін повинна бути не менше 5.";
@@ -154,14 +150,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Update the flat if no errors
     if (empty($errors)) {
-        // Update properties
         $update_prop = $conn->prepare("UPDATE properties SET address = ?, area = ?, floor = ?, rooms = ?, price = ? WHERE property_id = ?");
         $update_prop->bind_param("sddisi", $address, $area, $floor, $rooms, $price, $property_id);
         $update_prop->execute();
 
-        // Update flat_details
         $update_flat = $conn->prepare("UPDATE flat_details SET building_type = ?, build_year = ?, elevators = ?, heating = ?, infrastructure = ?, renovation = ?, furnished = ?, appliances = ?, bathroom = ?, bathroom_count = ?, internet_tv = ?, security = ?, parking = ?, ownership = ?, mortgage_available = ?, balcony = ?, description = ? WHERE property_id = ?");
         $update_flat->bind_param("siisssssssisissssi", $building_type, $build_year, $elevators, $heating, $infrastructure, $renovation, $furnished, $appliances, $bathroom, $bathroom_count, $internet_tv, $security, $parking, $ownership, $mortgage_available, $balcony, $description, $property_id);
         $update_flat->execute();
