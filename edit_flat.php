@@ -8,7 +8,6 @@ include 'connect_to_db.php';
 include 'header.php';
 $property_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-// Check if user is admin
 if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true) {
     $stmt = $conn->prepare("SELECT * FROM properties WHERE property_id = ? AND type_id = 1");
     $stmt->bind_param("i", $property_id);

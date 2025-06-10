@@ -6,9 +6,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    // Check for admin credentials first
     if ($email === "admin@admin" && $password === "admin") {
-        // Знайти user_id адміна в БД
         $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();

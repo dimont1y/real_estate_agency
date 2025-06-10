@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Час створення: Чрв 07 2025 р., 16:30
+-- Час створення: Чрв 10 2025 р., 22:55
 -- Версія сервера: 10.4.32-MariaDB
 -- Версія PHP: 8.2.12
 
@@ -20,36 +20,6 @@ SET time_zone = "+00:00";
 --
 -- База даних: `real_estate_agency`
 --
-
--- --------------------------------------------------------
-
---
--- Структура таблиці `agents`
---
-
-CREATE TABLE `agents` (
-  `agent_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `full_name` varchar(100) NOT NULL,
-  `phone` varchar(20) NOT NULL,
-  `experience` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Структура таблиці `deals`
---
-
-CREATE TABLE `deals` (
-  `deal_id` int(11) NOT NULL,
-  `deal_date` date NOT NULL,
-  `price` decimal(10,2) NOT NULL,
-  `deal_type` enum('sale','rent') NOT NULL,
-  `buyer_id` int(11) NOT NULL,
-  `property_id` int(11) NOT NULL,
-  `agent_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -84,7 +54,9 @@ CREATE TABLE `flat_details` (
 --
 
 INSERT INTO `flat_details` (`detail_id`, `property_id`, `building_type`, `build_year`, `elevators`, `heating`, `infrastructure`, `renovation`, `furnished`, `appliances`, `bathroom`, `bathroom_count`, `internet_tv`, `security`, `parking`, `ownership`, `mortgage_available`, `balcony`, `description`) VALUES
-(5, 33, 'Цегляний', '2021', 1, 'Автономне', 'Магазин', 'Євроремонт', '', 'Повний комплект', 'Суміщений', 1, 1, 'Домофон', '0', '', 1, 'Лоджія', 'Продаж 1-но кімнатної квартири в новобудові по вул. Кульпарківська. Житловий комплекс Parus Park. Квартира розташована на 3-му поверсі 16-ти поверхового будинку. Загальна площа квартири 67 кв.м. Простора кухня-вітальня, та ізольована спальня. Квартира з ремонтом, облаштована меблями та побутовою технікою. Є кондиціонер.Підігрів підлоги по всій квартирі. Опалення будинкове.');
+(5, 33, '', '2021', 1, 'Автономне', 'Магазин', 'Євроремонт', '', 'Повний комплект', 'Суміщений', 1, 1, 'Домофон', '0', '', 1, 'Лоджія', 'Продаж 1-но кімнатної квартири в новобудові по вул. Кульпарківська. Житловий комплекс Parus Park. Квартира розташована на 3-му поверсі 16-ти поверхового будинку. Загальна площа квартири 67 кв.м. Простора кухня-вітальня, та ізольована спальня. Квартира з ремонтом, облаштована меблями та побутовою технікою. Є кондиціонер.Підігрів підлоги по всій квартирі. Опалення будинкове.'),
+(9, 42, '', '1980', 0, 'Автономне', 'Лікарня поблизу', 'Євроремонт', '', 'Повний комплект', 'Суміщений', 1, 0, 'Домофон', 'Наземний', '', 0, 'Балкон', 'Продаж 3-ох кімнатної квартири по вул.Кирила Мефодія. Квартира розташована на 2-му поверсі 3-ох поверхового будинку. Австрійський будинок. Кімнати суміжні. Індивідуальне опалення. Поруч стрийський парк.'),
+(10, 43, '', '2005', 2, 'Центральне', 'Розташована у зручному районі з розвиненою інфраструктурою, неподалік від магазинів, ресторанів, парків та громадського транспорту.', 'Євроремонт', '', 'Повний комплект', 'Суміщений', 2, 0, 'Домофон', 'Підземний', '', 0, 'Балкон', 'Продаж 3-ох кім квартири в новобудові по вул. Сумська. Квартира дворівнева. Квартира розташована на 10-му поверсі 10-ти поверхового будинку. Загальна площа 118 кв.м. Кімнати ізольовані. Індивідуальне опалення. Є кондиціонер. Два санвузла. Квартира продається з меблями та побутовою технікою.');
 
 -- --------------------------------------------------------
 
@@ -128,9 +100,34 @@ CREATE TABLE `house_details` (
 
 INSERT INTO `house_details` (`property_id`, `building_type`, `build_year`, `floors`, `total_area`, `living_area`, `land_area`, `sewerage`, `water_supply`, `heating`, `garage`, `outbuildings`, `infrastructure`, `renovation`, `furnished`, `appliances`, `bathroom`, `bathroom_location`, `balcony_terrace`, `internet_tv`, `security`, `ownership`, `mortgage_available`, `purpose`, `fence`, `distance_to_city`, `description`) VALUES
 (22, 'Моноліт', 2018, 2, 60.00, 30.00, 140.00, 'Центральна', 'Центральне', 'Центральне', 'Окремий', 'sdasd', 'sadd', 'Євроремонт', 'Повністю мебльована', 'Повний комплект', 'Суміщений', '1 і 2 поверх', 'Балкон', 'Підключено', 'Відеоспостереження', 'Приватна', 'Так', 'Житлове', '1.5 м. Муровані опори та паркан з шифру', '3', '0'),
-(23, 'Цегляний', 2009, 2, 350.00, 150.00, 999.99, 'Центральна', 'Центральне', 'Електричне', 'Вбудований', 'Нема', 'є', 'Євроремонт', 'Частково мебльована', 'є', '2', '1 і 2 поверх', 'Балкон і тераса', 'Підключено', 'Камери та сигналізація', 'Приватна', 'Ні', 'Житлове', '2м', '2', 'Характеристики об'єкта:\r\n– Загальна площа: 350,7 м²\r\n– Поверховість: 2 поверхи + цокольний поверх (може використовуватись як бомбосховище)\r\n– Власна територія: 10 соток, повністю огороджена\r\n– Ландшафтний дизайн: альтанка, сад, альпійська гірка\r\n– Опалення: індивідуальне газове\r\n– Інфраструктура: поруч школа, Стрийський парк'),
+(23, 'Цегляний', 2009, 2, 350.00, 150.00, 999.99, 'Центральна', 'Центральне', 'Електричне', 'Вбудований', 'Нема', 'є', 'Євроремонт', 'Частково мебльована', 'є', '2', '1 і 2 поверх', 'Балкон і тераса', 'Підключено', 'Камери та сигналізація', 'Приватна', 'Ні', 'Житлове', '2м', '2', 'Характеристики об’єкта:\r\n– Загальна площа: 350,7 м²\r\n– Поверховість: 2 поверхи + цокольний поверх (може використовуватись як бомбосховище)\r\n– Власна територія: 10 соток, повністю огороджена\r\n– Ландшафтний дизайн: альтанка, сад, альпійська гірка\r\n– Опалення: індивідуальне газове\r\n– Інфраструктура: поруч школа, Стрийський парк'),
 (24, 'Цегляний', 2001, 2, 140.00, 80.00, 500.00, 'Центральна', 'Центральне', 'Газове', 'Немає', 'Нема', 'Нема', 'Євроремонт', 'Повністю мебльована', 'Є', 'Є', 'Є', 'Немає', 'Підключено', 'Нема', 'Приватна', 'Так', 'Житлове', '2м', '0', 'Оренда 4-кім. частини будинку Львів, вул. Ткацька (Замарстинівська). Поверх 2/2ц., площа 140 кв.м., євроремонт, індивідуальне опалення, всі меблі та побутова техніка, тераса 20 кв.м, мангальна зона, парковка на 3 авто, вільна.'),
 (25, 'Цегляний', 2020, 2, 165.00, 60.00, 4.00, 'Центральна', 'Центральне', 'Центральне', 'Окремий', 'Літня кухня', 'Паркомісце, колодязь', 'Євроремонт', 'Повністю мебльована', 'Є', 'Є', '1 поверх', 'Балкон', 'Підключено', 'Камери та сигналізація', 'Приватна', 'Ні', 'Житлове', '1.5 м. Муровані опори та паркан з шифру', '4', 'Продаж окремо стоячого будинку біля ринку «Південний» Заг.пл.-165 м2. Будинок збудований в двох рівнях,з цегли ,на першому поверсі 3 кімнати: вітальня 2 спальні, кухня, великий хол ,та ванна кімната, другий поверх мансардний де велика вітальня дитяча кімната кухня та санвузол.також є балкон,Будинок зпланований для можливості проживання 2 сімей,перекриття залізобетонне, будинок утеплений пінопластом 100мм є газ ,центаральна вода та каналізація та невеличкий підвал.Ділянка правильної форми 5 соток на ділянці є колодязь, два окремостоячих гаражі з ямою,також та передбачене паркомісце. В літній кухні, є газ, вода та електрика, є мангал та відпочинкова зона. Також є багато зелених насаджень на подвір\'ї .Зручний заїзд з вул. Виговського та з вулиці Щирецька.Поруч з будинком дитячний майданчик.');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `messages`
+--
+
+CREATE TABLE `messages` (
+  `message_id` int(11) NOT NULL,
+  `sender_id` int(11) NOT NULL,
+  `receiver_id` int(11) NOT NULL,
+  `text` text NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `is_read` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Дамп даних таблиці `messages`
+--
+
+INSERT INTO `messages` (`message_id`, `sender_id`, `receiver_id`, `text`, `created_at`, `is_read`) VALUES
+(1, 1, 8, 'ПРивіт', '2025-06-08 22:12:54', 0),
+(2, 1, 8, 'Хочу підняти оголошення в топ', '2025-06-08 22:14:00', 0),
+(3, 1, 8, 'АЛО', '2025-06-08 22:15:58', 0),
+(20, 1, 8, 'Доброго дня. Хочу підняти оголошення в топ', '2025-06-09 18:37:45', 0);
 
 -- --------------------------------------------------------
 
@@ -146,19 +143,26 @@ CREATE TABLE `properties` (
   `rooms` int(11) NOT NULL,
   `type_id` int(11) NOT NULL,
   `owner_id` int(11) NOT NULL,
-  `price` decimal(10,2) NOT NULL
+  `price` decimal(10,2) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `is_top` tinyint(1) NOT NULL DEFAULT 0,
+  `is_highlighted` tinyint(1) NOT NULL DEFAULT 0,
+  `views` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Дамп даних таблиці `properties`
 --
 
-INSERT INTO `properties` (`property_id`, `address`, `area`, `floor`, `rooms`, `type_id`, `owner_id`, `price`) VALUES
-(22, 'Львів, вул. Довженка 5', 80, 2, 1, 2, 1, 130000.00),
-(23, 'вулиця Дзиндри, Львів', 350, 2, 5, 2, 1, 150000.00),
-(24, 'вулиця Ткацька, 5, Львів', 140, 2, 4, 2, 1, 90000.00),
-(25, 'Львів, вул. 6-й Скнилівський провулок, 9', 165, 2, 5, 2, 7, 290000.00),
-(33, 'Львів, вул. Кульпарківська, 64а', 67, 3, 1, 1, 1, 107000.00);
+INSERT INTO `properties` (`property_id`, `address`, `area`, `floor`, `rooms`, `type_id`, `owner_id`, `price`, `created_at`, `status`, `is_top`, `is_highlighted`, `views`) VALUES
+(22, 'Львів, вул. Довженка 5', 80, 2, 1, 2, 1, 130000.00, '2025-06-08 19:24:58', 'approved', 0, 0, 0),
+(23, 'вулиця Дзиндри, Львів', 350, 2, 5, 2, 1, 150000.00, '2025-06-08 19:24:58', 'approved', 0, 0, 0),
+(24, 'вулиця Ткацька, 5, Львів', 140, 2, 4, 2, 1, 90000.00, '2025-06-08 19:24:58', 'approved', 0, 0, 0),
+(25, 'Львів, вул. 6-й Скнилівський провулок, 9', 165, 2, 5, 2, 7, 290000.00, '2025-06-08 19:24:58', 'approved', 0, 0, 0),
+(33, 'Львів, вул. Кульпарківська, 64а', 67, 3, 1, 1, 1, 107000.00, '2025-06-08 19:24:58', 'approved', 0, 0, 0),
+(42, 'Львів, Кирила і Мефодія вул., 26', 63, 3, 3, 1, 11, 119000.00, '2025-06-10 23:47:45', 'approved', 0, 0, 0),
+(43, 'Львів, Сумська вул., 10', 118, 10, 10, 1, 11, 169000.00, '2025-06-10 23:51:46', 'approved', 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -260,7 +264,37 @@ INSERT INTO `property_photos` (`photo_id`, `property_id`, `file_path`) VALUES
 (211, 33, 'pics/flat/33/6841f51d1dad0_27.jpg'),
 (212, 33, 'pics/flat/33/6841f51d1e309_28.jpg'),
 (213, 33, 'pics/flat/33/6841f51d1eb87_29.jpg'),
-(214, 33, 'pics/flat/33/6841f51d1f330_31.jpg');
+(214, 33, 'pics/flat/33/6841f51d1f330_31.jpg'),
+(276, 42, 'pics/flat/42/1.jpg'),
+(277, 42, 'pics/flat/42/2.jpg'),
+(278, 42, 'pics/flat/42/3.jpg'),
+(279, 42, 'pics/flat/42/4.jpg'),
+(280, 42, 'pics/flat/42/5.jpg'),
+(281, 42, 'pics/flat/42/6.jpg'),
+(282, 42, 'pics/flat/42/7.jpg'),
+(283, 42, 'pics/flat/42/8.jpg'),
+(284, 42, 'pics/flat/42/9.jpg'),
+(285, 42, 'pics/flat/42/10.jpg'),
+(286, 43, 'pics/flat/43/1.jpg'),
+(287, 43, 'pics/flat/43/2.jpg'),
+(288, 43, 'pics/flat/43/3.jpg'),
+(289, 43, 'pics/flat/43/4.jpg'),
+(290, 43, 'pics/flat/43/5.jpg'),
+(291, 43, 'pics/flat/43/6.jpg'),
+(292, 43, 'pics/flat/43/7.jpg'),
+(293, 43, 'pics/flat/43/8.jpg'),
+(294, 43, 'pics/flat/43/9.jpg'),
+(295, 43, 'pics/flat/43/10.jpg'),
+(296, 43, 'pics/flat/43/11.jpg'),
+(297, 43, 'pics/flat/43/12.jpg'),
+(298, 43, 'pics/flat/43/13.jpg'),
+(299, 43, 'pics/flat/43/14.jpg'),
+(300, 43, 'pics/flat/43/15.jpg'),
+(301, 43, 'pics/flat/43/16.jpg'),
+(302, 43, 'pics/flat/43/17.jpg'),
+(303, 43, 'pics/flat/43/18.jpg'),
+(304, 43, 'pics/flat/43/19.jpg'),
+(305, 43, 'pics/flat/43/20.jpg');
 
 -- --------------------------------------------------------
 
@@ -273,39 +307,24 @@ CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `email` varchar(100) NOT NULL,
-  `role` enum('user','admin') NOT NULL DEFAULT 'user',
-  `phone` varchar(13) DEFAULT NULL
+  `phone` varchar(13) DEFAULT NULL,
+  `role` enum('user','admin','moderator') NOT NULL DEFAULT 'user',
+  `is_blocked` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Дамп даних таблиці `users`
 --
 
-INSERT INTO `users` (`user_id`, `username`, `password_hash`, `email`, `role`, `phone`) VALUES
-(1, 'Дмитро', '$2y$10$gslcmtbsJNDpD4TQbwB/s.wpeQrDRW43lB3Q6/hIQLshfDrdNkFMa', 'dima1990gor@gmail.com', 'user', '+380993235480'),
-(3, 'Діма', '$2y$10$8laa.s/V5JHxtiHv/qvEcedk4dyFTTflAonAu9Yq.U5GzYUY0UBhm', 'dmytro.horbach.kb.2023@lpnu.ua', 'user', '+380993235489'),
-(6, 'Влад', '$2y$10$WqtrRvahnewEd8Nyb84yYuGDsgaE7VjH16T2Sq2g7qbEAaTC5GJdu', 'gorbachdima59@gmail.com', 'user', '+380993235480'),
-(7, 'Dmytro', '$2y$10$QksfNJ8.rkanPXFN6d0W5O3zCy2sdB4VtH1rMRxKotGY7LmbsMrD6', 'gorbach2006@gmail.com', 'user', '+380993235489');
+INSERT INTO `users` (`user_id`, `username`, `password_hash`, `email`, `phone`, `role`, `is_blocked`) VALUES
+(1, 'Дмитро', '$2y$10$gslcmtbsJNDpD4TQbwB/s.wpeQrDRW43lB3Q6/hIQLshfDrdNkFMa', 'dima1990gor@gmail.com', '+380993235480', 'user', 0),
+(7, 'Dmytro', '$2y$10$QksfNJ8.rkanPXFN6d0W5O3zCy2sdB4VtH1rMRxKotGY7LmbsMrD6', 'gorbach2006@gmail.com', NULL, 'user', 0),
+(8, 'admin', '$2y$10$AjyKVATJOW8fzYrSB8zsM.76/32O8J8YmkF7Sj8LnvmPBJHblT7I2', 'admin@admin', '+380000000000', 'admin', 0),
+(11, 'Владислав Кудь', '$2y$10$NbQ3UFa9rPZ/1zwTlbTgyOKNsg3TGjf7ZIQjEfKbnIJ7lCakZSjUy', 'vladislavkud@gmail.com', '+380997456213', 'user', 0);
 
 --
 -- Індекси збережених таблиць
 --
-
---
--- Індекси таблиці `agents`
---
-ALTER TABLE `agents`
-  ADD PRIMARY KEY (`agent_id`),
-  ADD UNIQUE KEY `user_id` (`user_id`);
-
---
--- Індекси таблиці `deals`
---
-ALTER TABLE `deals`
-  ADD PRIMARY KEY (`deal_id`),
-  ADD KEY `buyer_id` (`buyer_id`),
-  ADD KEY `property_id` (`property_id`),
-  ADD KEY `agent_id` (`agent_id`);
 
 --
 -- Індекси таблиці `flat_details`
@@ -319,6 +338,14 @@ ALTER TABLE `flat_details`
 --
 ALTER TABLE `house_details`
   ADD PRIMARY KEY (`property_id`);
+
+--
+-- Індекси таблиці `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`message_id`),
+  ADD KEY `fk_sender` (`sender_id`),
+  ADD KEY `fk_receiver` (`receiver_id`);
 
 --
 -- Індекси таблиці `properties`
@@ -353,28 +380,22 @@ ALTER TABLE `users`
 --
 
 --
--- AUTO_INCREMENT для таблиці `agents`
---
-ALTER TABLE `agents`
-  MODIFY `agent_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблиці `deals`
---
-ALTER TABLE `deals`
-  MODIFY `deal_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT для таблиці `flat_details`
 --
 ALTER TABLE `flat_details`
-  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT для таблиці `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT для таблиці `properties`
 --
 ALTER TABLE `properties`
-  MODIFY `property_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `property_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT для таблиці `propertytypes`
@@ -386,31 +407,17 @@ ALTER TABLE `propertytypes`
 -- AUTO_INCREMENT для таблиці `property_photos`
 --
 ALTER TABLE `property_photos`
-  MODIFY `photo_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=221;
+  MODIFY `photo_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=306;
 
 --
 -- AUTO_INCREMENT для таблиці `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Обмеження зовнішнього ключа збережених таблиць
 --
-
---
--- Обмеження зовнішнього ключа таблиці `agents`
---
-ALTER TABLE `agents`
-  ADD CONSTRAINT `agents_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
-
---
--- Обмеження зовнішнього ключа таблиці `deals`
---
-ALTER TABLE `deals`
-  ADD CONSTRAINT `deals_ibfk_1` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`user_id`),
-  ADD CONSTRAINT `deals_ibfk_2` FOREIGN KEY (`property_id`) REFERENCES `properties` (`property_id`),
-  ADD CONSTRAINT `deals_ibfk_3` FOREIGN KEY (`agent_id`) REFERENCES `agents` (`agent_id`);
 
 --
 -- Обмеження зовнішнього ключа таблиці `flat_details`
@@ -423,6 +430,13 @@ ALTER TABLE `flat_details`
 --
 ALTER TABLE `house_details`
   ADD CONSTRAINT `house_details_ibfk_1` FOREIGN KEY (`property_id`) REFERENCES `properties` (`property_id`) ON DELETE CASCADE;
+
+--
+-- Обмеження зовнішнього ключа таблиці `messages`
+--
+ALTER TABLE `messages`
+  ADD CONSTRAINT `fk_receiver` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Обмеження зовнішнього ключа таблиці `properties`
@@ -438,7 +452,6 @@ ALTER TABLE `properties`
 --
 ALTER TABLE `property_photos`
   ADD CONSTRAINT `property_photos_ibfk_1` FOREIGN KEY (`property_id`) REFERENCES `properties` (`property_id`) ON DELETE CASCADE;
-
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

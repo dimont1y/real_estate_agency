@@ -313,7 +313,7 @@ main {
 }
 
 .property a[href*="property_details"] {
-  background-color: #005baa;  /* синя кнопка */
+  background-color: #005baa;  
   color: white;
 }
 
@@ -322,7 +322,7 @@ main {
 }
 
 .property a[href*="edit_property"] {
-  background-color: #ffa500;  /* помаранчева кнопка */
+  background-color: #ffa500;  
   color: white;
 }
 
@@ -331,7 +331,7 @@ main {
 }
 
 .property a[href*="delete_property"] {
-  background-color: #a30000;  /* червона кнопка */
+  background-color: #a30000;  
   color: white;
 }
 
@@ -393,4 +393,42 @@ form button {
 
 form button:hover {
   background-color: #a80000;
+}
+
+.login-box, .register-box {
+    max-width: 1200px;
+    margin: 50px auto;
+    background: white;
+    padding: 80px;
+    border-radius: 18px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.12);
+}
+
+.login-box h2, .register-box h2 {
+    font-size: 2.5rem;
+}
+
+.login-box label, .register-box label {
+    font-size: 1.3rem;
+}
+
+.login-box input, .register-box input {
+    font-size: 1.3rem;
+    padding: 20px;
+}
+
+.login-box button, .register-box button {
+    font-size: 1.3rem;
+    padding: 20px;
+}
+
+.login-box button:hover, .register-box button:hover {
+    background-color: #630000;
+}
+
+.login-box .error, .register-box .error {
+    color: #a30000;
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: bold;
 }

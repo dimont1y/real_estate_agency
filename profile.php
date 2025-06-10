@@ -128,6 +128,10 @@ unset($_SESSION['message']);
             <a href="logout.php" class="btn" style="margin-top: 1rem; display: inline-block; background-color: #a30000; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">Вийти з акаунту</a>
         </form>
 
+        <div style="text-align:center; margin: 24px 0 32px 0;">
+            <a href="chat.php" style="display:inline-block; padding:12px 32px; background:#ffc107; color:#222; border-radius:8px; text-decoration:none; font-weight:bold; font-size:1.1em;">Зв'язатись з модератором</a>
+        </div>
+
         <h3>Мої оголошення</h3>
         <?php if ($adsResult->num_rows > 0): ?>
             <?php while ($ad = $adsResult->fetch_assoc()): ?>

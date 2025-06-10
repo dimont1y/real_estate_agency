@@ -3,22 +3,18 @@ session_start();
 include 'connect_to_db.php';
 include 'header.php'; 
 
-// Check if user is admin
 if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     header("Location: /real_estate/login.php");
     exit();
 }
 
-// Handle ad deletion
 if (isset($_POST['delete_ad'])) {
     $ad_id = $_POST['ad_id'];
     
-    // Delete from property_photos first
     $stmt = $conn->prepare("DELETE FROM property_photos WHERE property_id = ?");
     $stmt->bind_param("i", $ad_id);
     $stmt->execute();
     
-    // Delete from flat_details or house_details based on type
     $stmt = $conn->prepare("SELECT type_id FROM properties WHERE property_id = ?");
     $stmt->bind_param("i", $ad_id);
     $stmt->execute();
@@ -26,22 +22,20 @@ if (isset($_POST['delete_ad'])) {
     $property = $result->fetch_assoc();
     
     if ($property && isset($property['type_id'])) {
-        if ($property['type_id'] == 1) { // Flat
+        if ($property['type_id'] == 1) { 
             $stmt = $conn->prepare("DELETE FROM flat_details WHERE property_id = ?");
-        } else { // House
+        } else { 
             $stmt = $conn->prepare("DELETE FROM house_details WHERE property_id = ?");
         }
         $stmt->bind_param("i", $ad_id);
         $stmt->execute();
     }
     
-    // Finally delete from properties
     $stmt = $conn->prepare("DELETE FROM properties WHERE property_id = ?");
     $stmt->bind_param("i", $ad_id);
     $stmt->execute();
 }
 
-// Handle approve/reject actions
 if (isset($_POST['approve_ad'])) {
     $ad_id = (int)$_POST['ad_id'];
     $stmt = $conn->prepare("UPDATE properties SET status = 'approved' WHERE property_id = ?");
@@ -55,7 +49,6 @@ if (isset($_POST['reject_ad'])) {
     $stmt->execute();
 }
 
-// Handle user management actions
 if (isset($_POST['block_user'])) {
     $user_id = (int)$_POST['user_id'];
     $stmt = $conn->prepare("UPDATE users SET is_blocked = 1 WHERE user_id = ?");
@@ -78,7 +71,6 @@ if (isset($_POST['change_role'])) {
     }
 }
 
-// Handle top/highlight actions
 if (isset($_POST['make_top'])) {
     $ad_id = (int)$_POST['ad_id'];
     $stmt = $conn->prepare("UPDATE properties SET is_top = 1 WHERE property_id = ?");
@@ -104,16 +96,60 @@ if (isset($_POST['remove_highlighted'])) {
     $stmt->execute();
 }
 
-// Fetch all properties with their details (top first)
-$properties = $conn->query("
+$search_address = isset($_GET['search_address']) ? $_GET['search_address'] : '';
+$sort_by = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'property_id';
+$sort_order = isset($_GET['sort_order']) ? $_GET['sort_order'] : 'DESC';
+
+$filter_type = isset($_GET['filter_type']) ? $_GET['filter_type'] : '';
+$area_from = isset($_GET['area_from']) ? (int)$_GET['area_from'] : '';
+$area_to = isset($_GET['area_to']) ? (int)$_GET['area_to'] : '';
+$rooms_from = isset($_GET['rooms_from']) ? (int)$_GET['rooms_from'] : '';
+$rooms_to = isset($_GET['rooms_to']) ? (int)$_GET['rooms_to'] : '';
+$price_from = isset($_GET['price_from']) ? (int)$_GET['price_from'] : '';
+$price_to = isset($_GET['price_to']) ? (int)$_GET['price_to'] : '';
+
+$properties_query = "
     SELECT p.*, pt.type_name, u.username as owner_name 
     FROM properties p 
     JOIN propertytypes pt ON p.type_id = pt.type_id 
     JOIN users u ON p.owner_id = u.user_id 
-    ORDER BY p.is_top DESC, p.property_id DESC
-");
+    WHERE p.status = 'approved'
+";
 
-// Fetch pending properties for moderation
+if (!empty($search_address)) {
+    $search_address = $conn->real_escape_string($search_address);
+    $properties_query .= " AND p.address LIKE '%$search_address%'";
+}
+if (!empty($filter_type)) {
+    $filter_type = $conn->real_escape_string($filter_type);
+    $properties_query .= " AND pt.type_name = '$filter_type'";
+}
+if ($area_from !== '') {
+    $properties_query .= " AND p.area >= $area_from";
+}
+if ($area_to !== '') {
+    $properties_query .= " AND p.area <= $area_to";
+}
+if ($rooms_from !== '') {
+    $properties_query .= " AND p.rooms >= $rooms_from";
+}
+if ($rooms_to !== '') {
+    $properties_query .= " AND p.rooms <= $rooms_to";
+}
+if ($price_from !== '') {
+    $properties_query .= " AND p.price >= $price_from";
+}
+if ($price_to !== '') {
+    $properties_query .= " AND p.price <= $price_to";
+}
+
+$allowed_sort_columns = ['property_id', 'type_name', 'address', 'area', 'rooms', 'price'];
+$sort_by = in_array($sort_by, $allowed_sort_columns) ? $sort_by : 'property_id';
+$sort_order = strtoupper($sort_order) === 'ASC' ? 'ASC' : 'DESC';
+
+$properties_query .= " ORDER BY p.is_top DESC, $sort_by $sort_order";
+$properties = $conn->query($properties_query);
+
 $pending_properties = $conn->query("
     SELECT p.*, pt.type_name, u.username as owner_name 
     FROM properties p 
@@ -123,27 +159,55 @@ $pending_properties = $conn->query("
     ORDER BY p.property_id DESC
 ");
 
-// Fetch all users
-$all_users = $conn->query("SELECT user_id, username, email, phone, role, is_blocked FROM users ORDER BY user_id DESC");
+$user_search = isset($_GET['user_search']) ? $_GET['user_search'] : '';
+$all_users_query = "SELECT user_id, username, email, phone, role, is_blocked FROM users";
+if (!empty($user_search)) {
+    $user_search_esc = $conn->real_escape_string($user_search);
+    $all_users_query .= " WHERE username LIKE '%$user_search_esc%' OR email LIKE '%$user_search_esc%' OR phone LIKE '%$user_search_esc%'";
+}
+$all_users_query .= " ORDER BY user_id DESC";
+$all_users = $conn->query($all_users_query);
 
-// Fetch all chat dialogs (для модератора/адміна)
 $dialogs = [];
 if ($_SESSION['is_admin']) {
     $admin_id = $_SESSION['user_id'];
     $dialogs_sql = "
         SELECT 
-            IF(u.role IN ('admin','moderator'), m.sender_id, m.receiver_id) as user_id,
-            u2.username,
-            SUM(m.receiver_id = u2.user_id AND m.is_read = 0) as unread_count,
+            u.user_id,
+            u.username,
+            SUM(m.receiver_id = $admin_id AND m.is_read = 0 AND m.sender_id = u.user_id) as unread_count,
             MAX(m.created_at) as last_msg_time
-        FROM messages m
-        JOIN users u ON m.sender_id = u.user_id OR m.receiver_id = u.user_id
-        JOIN users u2 ON u2.user_id = IF(u.role IN ('admin','moderator'), m.receiver_id, m.sender_id)
-        WHERE (u.role = 'user' AND (m.sender_id IN (SELECT user_id FROM users WHERE role IN ('admin','moderator')) OR m.receiver_id IN (SELECT user_id FROM users WHERE role IN ('admin','moderator'))))
-        GROUP BY user_id, u2.username
+        FROM users u
+        LEFT JOIN messages m ON (m.sender_id = u.user_id AND m.receiver_id = $admin_id) OR (m.sender_id = $admin_id AND m.receiver_id = u.user_id)
+        WHERE u.role = 'user'
+        GROUP BY u.user_id, u.username
         ORDER BY last_msg_time DESC
     ";
     $dialogs = $conn->query($dialogs_sql);
+}
+
+$ads_per_day = [];
+$ads_days = [];
+$res = $conn->query("SELECT DATE(created_at) as day, COUNT(*) as count FROM properties WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 13 DAY) GROUP BY day ORDER BY day ASC");
+while ($row = $res->fetch_assoc()) {
+    $ads_days[] = $row['day'];
+    $ads_per_day[] = (int)$row['count'];
+}
+
+$active_users_7d = 0;
+$res = $conn->query("SELECT COUNT(DISTINCT user_id) as active_users FROM (\n    SELECT owner_id as user_id FROM properties WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)\n    UNION\n    SELECT sender_id as user_id FROM messages WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)\n    UNION\n    SELECT receiver_id as user_id FROM messages WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)\n) t");
+if ($row = $res->fetch_assoc()) $active_users_7d = (int)$row['active_users'];
+
+$top_ads = [];
+$res = $conn->query("SELECT property_id, address, views FROM properties ORDER BY views DESC LIMIT 5");
+while ($row = $res->fetch_assoc()) $top_ads[] = $row;
+
+$msgs_per_day = [];
+$msgs_days = [];
+$res = $conn->query("SELECT DATE(created_at) as day, COUNT(*) as count FROM messages WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) GROUP BY day ORDER BY day ASC");
+while ($row = $res->fetch_assoc()) {
+    $msgs_days[] = $row['day'];
+    $msgs_per_day[] = (int)$row['count'];
 }
 ?>
 
@@ -153,6 +217,7 @@ if ($_SESSION['is_admin']) {
     <meta charset="UTF-8">
     <title>Адмін панель</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .admin-container {
             max-width: 1200px;
@@ -272,11 +337,47 @@ if ($_SESSION['is_admin']) {
             <div class="admin-tab active" data-tab="ads">Оголошення</div>
             <div class="admin-tab" data-tab="moderation">Модерація</div>
             <div class="admin-tab" data-tab="users">Користувачі</div>
+            <div class="admin-tab" data-tab="analytics">Аналітика</div>
             <a href="admin_messages.php" class="admin-tab" style="background:#ffc107; color:#222; text-decoration:none;">Чати</a>
         </div>
 
         <div id="ads" class="admin-section active">
             <h2>Всі оголошення</h2>
+            <form method="get" class="search-sort-form" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; width: 100%;">
+                <input type="text" name="search_address" value="<?php echo htmlspecialchars($search_address); ?>" placeholder="Пошук за адресою" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex: 1 1 160px; min-width: 120px;">
+                <select name="filter_type" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex: 1 1 120px; min-width: 100px;">
+                    <option value="">Всі типи</option>
+                    <option value="Квартира" <?php echo $filter_type === 'Квартира' ? 'selected' : ''; ?>>Квартира</option>
+                    <option value="Будинок" <?php echo $filter_type === 'Будинок' ? 'selected' : ''; ?>>Будинок</option>
+                </select>
+                <input type="number" name="area_from" value="<?php echo $area_from; ?>" placeholder="Площа від" style="padding:8px; border:1px solid #ddd; border-radius:4px; flex: 1 1 80px; min-width: 70px;">
+                <input type="number" name="area_to" value="<?php echo $area_to; ?>" placeholder="Площа до" style="padding:8px; border:1px solid #ddd; border-radius:4px; flex: 1 1 80px; min-width: 70px;">
+                <input type="number" name="rooms_from" value="<?php echo $rooms_from; ?>" placeholder="Кімнат від" style="padding:8px; border:1px solid #ddd; border-radius:4px; flex: 1 1 80px; min-width: 70px;">
+                <input type="number" name="rooms_to" value="<?php echo $rooms_to; ?>" placeholder="Кімнат до" style="padding:8px; border:1px solid #ddd; border-radius:4px; flex: 1 1 80px; min-width: 70px;">
+                <input type="number" name="price_from" value="<?php echo $price_from; ?>" placeholder="Ціна від" style="padding:8px; border:1px solid #ddd; border-radius:4px; flex: 1 1 90px; min-width: 80px;">
+                <input type="number" name="price_to" value="<?php echo $price_to; ?>" placeholder="Ціна до" style="padding:8px; border:1px solid #ddd; border-radius:4px; flex: 1 1 90px; min-width: 80px;">
+                <button type="submit" class="action-btn edit-btn" style="margin: 0; flex: 1 1 120px; min-width: 100px; max-width: 160px;">Застосувати</button>
+                <?php if (!empty($search_address) || !empty($filter_type) || $area_from !== '' || $area_to !== '' || $rooms_from !== '' || $rooms_to !== '' || $price_from !== '' || $price_to !== '' || $sort_by !== 'property_id' || $sort_order !== 'DESC'): ?>
+                    <a href="admin_dashboard.php" class="action-btn delete-btn" style="margin: 0; flex: 1 1 120px; min-width: 100px; max-width: 160px; text-decoration: none;">Скинути</a>
+                <?php endif; ?>
+            </form>
+            <form method="get" class="search-sort-form" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="hidden" name="search_address" value="<?php echo htmlspecialchars($search_address); ?>">
+                <select name="sort_by" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 180px;">
+                    <option value="property_id" <?php echo $sort_by === 'property_id' ? 'selected' : ''; ?>>ID</option>
+                    <option value="type_name" <?php echo $sort_by === 'type_name' ? 'selected' : ''; ?>>Тип</option>
+                    <option value="address" <?php echo $sort_by === 'address' ? 'selected' : ''; ?>>Адреса</option>
+                    <option value="area" <?php echo $sort_by === 'area' ? 'selected' : ''; ?>>Площа</option>
+                    <option value="rooms" <?php echo $sort_by === 'rooms' ? 'selected' : ''; ?>>Кімнати</option>
+                    <option value="price" <?php echo $sort_by === 'price' ? 'selected' : ''; ?>>Ціна</option>
+                </select>
+                <select name="sort_order" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px;">
+                    <option value="ASC" <?php echo $sort_order === 'ASC' ? 'selected' : ''; ?>>За зростанням</option>
+                    <option value="DESC" <?php echo $sort_order === 'DESC' ? 'selected' : ''; ?>>За спаданням</option>
+                </select>
+                <button type="submit" class="action-btn edit-btn" style="margin: 0; min-width: 120px;">Сортувати</button>
+            </form>
+
             <table class="admin-table">
                 <thead>
                     <tr>
@@ -376,6 +477,13 @@ if ($_SESSION['is_admin']) {
 
         <div id="users" class="admin-section">
             <h2>Керування користувачами</h2>
+            <form method="get" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+                <input type="text" name="user_search" value="<?php echo htmlspecialchars($user_search); ?>" placeholder="Пошук за іменем, email або телефоном" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 260px;">
+                <button type="submit" class="action-btn edit-btn" style="margin: 0; min-width: 120px;">Знайти</button>
+                <?php if (!empty($user_search)): ?>
+                    <a href="admin_dashboard.php#users" class="action-btn delete-btn" style="margin: 0; text-decoration: none; min-width: 120px;">Скинути</a>
+                <?php endif; ?>
+            </form>
             <table class="admin-table">
                 <thead>
                     <tr>
@@ -419,10 +527,32 @@ if ($_SESSION['is_admin']) {
                 </tbody>
             </table>
         </div>
+
+        <div id="analytics" class="admin-section">
+            <h2>Аналітика</h2>
+            <div style="margin-bottom: 30px;">
+                <h3>📈 Нові оголошення по днях</h3>
+                <canvas id="adsPerDayChart" height="80"></canvas>
+            </div>
+            <div style="margin-bottom: 30px;">
+                <h3>👥 Активні користувачі за 7 днів</h3>
+                <div id="activeUsers7days" style="font-size:2em; font-weight:bold;"></div>
+            </div>
+            <div style="margin-bottom: 30px;">
+                <h3>🏠 Топові оголошення (по переглядах)</h3>
+                <table class="admin-table" id="topAdsTable">
+                    <thead><tr><th>ID</th><th>Адреса</th><th>Перегляди</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div style="margin-bottom: 30px;">
+                <h3>📤 Повідомлення у чатах за останні дні</h3>
+                <canvas id="messagesPerDayChart" height="80"></canvas>
+            </div>
+        </div>
     </div>
 
     <script>
-    // JS для перемикання вкладок
     document.querySelectorAll('.admin-tab').forEach(tab => {
         tab.addEventListener('click', function() {
             document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
@@ -431,6 +561,48 @@ if ($_SESSION['is_admin']) {
             document.getElementById(this.dataset.tab).classList.add('active');
         });
     });
+
+    const adsDays = <?php echo json_encode($ads_days); ?>;
+    const adsPerDay = <?php echo json_encode($ads_per_day); ?>;
+    const activeUsers7d = <?php echo json_encode($active_users_7d); ?>;
+    const topAds = <?php echo json_encode($top_ads); ?>;
+    const msgsDays = <?php echo json_encode($msgs_days); ?>;
+    const msgsPerDay = <?php echo json_encode($msgs_per_day); ?>;
+    document.querySelector('[data-tab="analytics"]').addEventListener('click', function() {
+        if (window.adsChart) window.adsChart.destroy();
+        const ctx1 = document.getElementById('adsPerDayChart').getContext('2d');
+        window.adsChart = new Chart(ctx1, {
+            type: 'bar',
+            data: { labels: adsDays, datasets: [{ label: 'Оголошень', data: adsPerDay, backgroundColor: '#007bff' }] },
+            options: { scales: { y: { beginAtZero: true } } }
+        });
+        document.getElementById('activeUsers7days').textContent = activeUsers7d;
+        const tbody = document.querySelector('#topAdsTable tbody');
+        tbody.innerHTML = '';
+        topAds.forEach(ad => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${ad.property_id}</td><td>${ad.address}</td><td>${ad.views}</td>`;
+            tbody.appendChild(tr);
+        });
+        if (window.msgsChart) window.msgsChart.destroy();
+        const ctx2 = document.getElementById('messagesPerDayChart').getContext('2d');
+        window.msgsChart = new Chart(ctx2, {
+            type: 'bar',
+            data: { labels: msgsDays, datasets: [{ label: 'Повідомлень', data: msgsPerDay, backgroundColor: '#28a745' }] },
+            options: { scales: { y: { beginAtZero: true } } }
+        });
+    });
+
+    console.log('adsDays', adsDays);
+    console.log('adsPerDay', adsPerDay);
+    console.log('activeUsers7d', activeUsers7d);
+    console.log('topAds', topAds);
+    console.log('msgsDays', msgsDays);
+    console.log('msgsPerDay', msgsPerDay);
+    if (adsDays.length === 0) document.getElementById('adsPerDayChart').insertAdjacentHTML('beforebegin', '<div style="color:#888;">Немає даних для графіка оголошень</div>');
+    if (msgsDays.length === 0) document.getElementById('messagesPerDayChart').insertAdjacentHTML('beforebegin', '<div style="color:#888;">Немає даних для графіка повідомлень</div>');
+    if (topAds.length === 0) document.querySelector('#topAdsTable tbody').innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888;">Немає даних</td></tr>';
+    if (!activeUsers7d) document.getElementById('activeUsers7days').innerHTML = '<span style="color:#888;">Немає даних</span>';
     </script>
 </body>
 </html> 

@@ -6,7 +6,6 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     exit();
 }
 
-// Витягуємо всі унікальні діалоги user <-> (admin/moderator)
 $dialogs_sql = "
     SELECT 
         u.user_id,

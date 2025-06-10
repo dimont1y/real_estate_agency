@@ -9,6 +9,30 @@ include 'connect_to_db.php';
 $message = "";
 $errors = [];
 
+$user_id = $_SESSION['user_id'];
+$limit = 3;
+$ad_count = 0;
+$stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE owner_id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stmt->bind_result($ad_count);
+$stmt->fetch();
+$stmt->close();
+
+if ($ad_count >= $limit) {
+    $admin = $conn->query("SELECT user_id FROM users WHERE role IN ('admin','moderator') ORDER BY role='admin' DESC, user_id ASC LIMIT 1")->fetch_assoc();
+    if ($admin) {
+        $admin_id = $admin['user_id'];
+        $text = "Я хочу розмістити більше 3-х оголошень. Прошу надати можливість або розповісти про оплату.";
+        $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, text) VALUES (?, ?, ?)");
+        $stmt->bind_param("iis", $user_id, $admin_id, $text);
+        $stmt->execute();
+    }
+    echo '<div style="background:#ffcdd2; color:#b71c1c; padding:16px; border-radius:8px; margin:20px 0; font-weight:bold; text-align:center;">Ви досягли ліміту безкоштовних оголошень. Ми вже повідомили адміністратора — очікуйте відповіді в чаті.<br><br><a href="index.php" style="display:inline-block; margin:6px 8px 0 0; padding:10px 24px; background:#007bff; color:#fff; border-radius:6px; text-decoration:none; font-weight:normal;">На головну</a><a href="chat.php" style="display:inline-block; margin:6px 0 0 8px; padding:10px 24px; background:#ffc107; color:#222; border-radius:6px; text-decoration:none; font-weight:normal;">Зв\'язатись з модератором</a></div>';
+    include 'footer.php';
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address = trim($_POST['address'] ?? '');
     $area = floatval($_POST['area'] ?? 0);
@@ -17,16 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $floor = intval($_POST['floor'] ?? 0);
     $description = trim($_POST['description'] ?? '');
     
-    // Handle admin user
     if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true) {
-        // Get or create admin user
         $admin_email = "admin@admin";
         $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
         $stmt->bind_param("s", $admin_email);
         $stmt->execute();
         $result = $stmt->get_result();
         if ($result->num_rows === 0) {
-            // Create admin user if doesn't exist
             $username = "Admin";
             $password_hash = password_hash("admin", PASSWORD_DEFAULT);
             $stmt = $conn->prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
